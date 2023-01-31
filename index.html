@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.3"></script>
+
+  <title>Fake5測試頁</title>
+
+</head>
+
+<body>
+  <div id="app">
+    <el-container>
+      <el-header class="header">Data Group
+        <el-select v-model="value" placeholder="請選擇" @change="getPerData(value)">
+          <el-option v-for="item in fakeData" :key="item" :label="item" :value="item">
+          </el-option>
+        </el-select>
+        <el-button type="primary" @click="dialogVisible = true">ADD</el-button>
+        <el-dialog title="新增資料" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
+          <h2>{{ perData.name }}</h2>
+          <h3>Name:<input type="text" placeholder="請輸入名稱" v-model="text1" /></h3>
+          <h3>Data:<input type="text" placeholder="請輸入資料" v-model="text2"/></h3>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="dialogVisible = false,putNewData(perData.name,text1,text2)">確 定</el-button>
+          </span>
+        </el-dialog>
+      </el-header>
+      <el-container class="content">
+        <el-main class="main" type="Info">
+          <el-table :data="perData.records" style="width: 100%">
+
+            <el-table-column prop="name" label="資料名稱" width="180">
+            </el-table-column>
+            <el-table-column prop="data" label="資料類型" width="180">
+            </el-table-column>
+          </el-table>
+
+
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
+</body>
+
+<script>
+
+  var vm = new Vue({
+    el: '#app',
+    data() {
+      return {
+        text1: '',
+        text2: '',
+        value: '',
+        fakeData: [],
+        perData: [],
+        dialogVisible: false,
+        newData:[]
+      }
+    },
+    methods: {
+      getData() {
+        const api = "https://localhost:7236/f5/data-group";
+
+        this.$http.get(api).then((response) => {
+          this.fakeData = response.data;
+        })
+      },
+      getPerData(prop) {
+        const url = `https://localhost:7236/f5/data-group/${prop}`;
+        this.$http.get(url).then((response) => {
+          this.perData = response.data;
+        })
+      },
+      handleClose(done) {
+        // this.$confirm('確認關閉？')
+        //   .then(_ => {
+          //     done();
+          //   })
+          //   .catch(_ => {});
+        },
+        putNewData(title,prop1,prop2) {
+        console.log(title,prop1,prop2);
+        const url = `https://localhost:7236/f5/data-group/add/${title}`;
+        this.$http.get(url).then((response) => {
+          console.log("~!~" + response.data.name);
+          this.perData = response.data;
+        })
+      },
+    },
+    created() {
+      this.getData();
+    }
+  })
+
+</script>
+
+</html>
