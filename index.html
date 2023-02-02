@@ -7,44 +7,128 @@
   <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
   <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
   <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-  <title>Fake5測試頁</title>
+  <title>Fake5_Test_Page</title>
 
 </head>
+<style>
+  body {
+    background-color: #3d8dbbd6;
+  }
+
+  #app,
+  span {
+    font-family: sans-serif;
+  }
+
+  .header {
+    margin: 0px 30% 10px 30%;
+
+  }
+
+  .main {
+    margin: 0 30%;
+    background-image: linear-gradient(to top, #accbee 0%, #e7f0fd 100%);
+  }
+
+  th {
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+  .el-table_1_column_1.el-table__cell,
+  .el-table_1_column_2.el-table__cell,
+  .el-table_1_column_3.el-table__cell {
+    text-align: center;
+  }
+
+  .el-table_1_column_1.el-table__cell .cell{
+    width:160px;
+  }
+
+  .el-dialog__title {
+    font-family: sans-serif;
+    font-size: 30px;
+    font-weight: bold;
+  }
+
+  .el-dialog__wrapper {
+    background-image: linear-gradient(to top, #accbee 0%, #e7f0fd 100%);
+  }
+
+  .el-form-item__label,
+  .el-form-item__content {
+    font-family: sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    color: black;
+    text-align: left;
+  }
+</style>
 
 <body>
   <div id="app">
     <el-container>
-      <el-header class="header">Data Group
-        <el-select v-model="value" placeholder="請選擇" @change="getPerData(value)">
-          <el-option v-for="item in fakeData" :key="item" :label="item" :value="item">
-          </el-option>
-        </el-select>
-        <el-button type="primary" @click="dialogVisible = true">ADD</el-button>
-        <el-dialog title="新增資料" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
-          <h2>{{ perData.name }}</h2>
-          <h3>Name:<input type="text" placeholder="請輸入名稱" v-model="text1" /></h3>
-          <h3>Data:<input type="text" placeholder="請輸入資料" v-model="text2"/></h3>
-          <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button type="primary" @click="dialogVisible = false,putNewData(perData.name,text1,text2)">確 定</el-button>
-          </span>
+      <el-header class="header">
+        <h4>Data Group
+          <el-select v-model="value" placeholder="Choose" @change="getPerData(value)" id="select">
+            <el-option v-for="item in fakeData" :key="item" :label="item" :value="item">
+            </el-option>
+          </el-select>
+          <el-button type="warning" round size="small" plain v-if="value!=''" @click="dialogVisible = true">ADD</el-button>
+        </h4>
+        <el-dialog title="New Data" :visible.sync="dialogVisible" width="50%">
+          <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+            <el-form-item label="Group:">{{ perData.name }}</el-form-item>
+            <el-form-item label="Name:" prop="name">
+              <el-input v-model="form.name" placeholder="Please enter name."></el-input></el-form-item>
+            <el-form-item label="Data:"><el-input v-model="form.data"
+                placeholder="Please enter information."></el-input></el-form-item>
+            <el-form-item>
+              <el-button type="primary" round
+                @click="dialogVisible = false,putNewData(perData.name,form.name,form.data)">Send</el-button>
+              <el-button round @click="dialogVisible = false">Cancel</el-button>
+            </el-form-item>
+          </el-form>
         </el-dialog>
       </el-header>
-      <el-container class="content">
-        <el-main class="main" type="Info">
-          <el-table :data="perData.records" style="width: 100%">
 
-            <el-table-column prop="name" label="資料名稱" width="180">
+      <el-container class="content">
+        <el-main class="main">
+          <el-table :data="perData.records">
+            <el-table-column prop="name" label="Name">
             </el-table-column>
-            <el-table-column prop="data" label="資料類型" width="180">
+            <el-table-column prop="data" label="Data">
+            </el-table-column>
+            <el-table-column id="icon">
+              <template scope="scope">
+                <el-button type="info" @click="dialog2 = true,oneRecord(perData.records[(Number(scope.$index))])"
+                  icon="el-icon-delete" circle>
+              </template>
+              </el-button>
             </el-table-column>
           </el-table>
 
+          <el-dialog title="Remove Data" :visible.sync="dialog2" width="50%">
+            <h2 style="color:red;">Are you sure you want to remove?</h2>
+            <el-form ref="removeForm" :model="removeForm" label-width="100px">
+              <el-form-item label="Group:">{{ perData.name }}</el-form-item>
+              <el-form-item label="Name:">{{removeForm.name}}</el-form-item>
+              <el-form-item label="Data:">{{ removeForm.data}}</el-form-item>
+
+              <el-form-item>
+                <el-button type="info" round
+                  @click="dialog2 = false,removeData(perData.name,removeForm.name,removeForm.data)">Send</el-button>
+                <el-button round @click="dialog2 = false">Cancel</el-button>
+              </el-form-item>
+            </el-form>
+          </el-dialog>
 
         </el-main>
       </el-container>
+
     </el-container>
   </div>
 </body>
@@ -54,46 +138,93 @@
   var vm = new Vue({
     el: '#app',
     data() {
+      var checkName = (rule, value, callback) => {
+        const regIp = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\/(1\d|2\d|3[0-2])$/;
+        const regStr = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5]|[A-Za-z]{0,9})\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5]|[A-Za-z]{0,9})\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5]|[A-Za-z]{0,9})\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5]|[A-Za-z]{0,9})\/(1\d|2\d|3[0-2])$/;
+        if (this.perData.type == "ip" && regIp.test(value) == false) {
+          return callback(new Error("Input error: Only number."));
+        } else if (this.perData.type == "string" && regStr.test(value) == false) {
+          return callback(new Error("Input error: number & string."));
+        }
+      };
       return {
-        text1: '',
-        text2: '',
         value: '',
         fakeData: [],
         perData: [],
+        form: {
+          name: '',
+          data: ''
+        }, rules: {
+          name: [
+            { validator: checkName, trigger: 'blur' }
+          ]
+        },
+        removeForm: {
+          name: '',
+          data: ''
+        },
         dialogVisible: false,
-        newData:[]
+        dialog2: false,
       }
     },
     methods: {
       getData() {
         const api = "https://localhost:7236/f5/data-group";
-
-        this.$http.get(api).then((response) => {
+        axios.get(api).then((response) => {
           this.fakeData = response.data;
         })
       },
       getPerData(prop) {
         const url = `https://localhost:7236/f5/data-group/${prop}`;
-        this.$http.get(url).then((response) => {
+        axios.get(url).then((response) => {
           this.perData = response.data;
         })
       },
-      handleClose(done) {
-        // this.$confirm('確認關閉？')
-        //   .then(_ => {
-          //     done();
-          //   })
-          //   .catch(_ => {});
-        },
-        putNewData(title,prop1,prop2) {
-        console.log(title,prop1,prop2);
-        const url = `https://localhost:7236/f5/data-group/add/${title}`;
-        this.$http.get(url).then((response) => {
-          console.log("~!~" + response.data.name);
-          this.perData = response.data;
-        })
+      putNewData(title, name, data) {
+        console.log(title, name, data);
+        var url = new URL(`https://localhost:7236/f5/data-group/add/${title}`);
+        if (data == "") {
+          data = "empty";
+        }
+        const params = new URLSearchParams(
+          { Name: name, Data: data }
+        );
+
+        const config = {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }
+
+        axios.post(url, params, config)
+          .then(response => console.log(response))
       },
+      oneRecord(records) {
+        console.log("N: " + records.name, records.data);
+        this.removeForm.name = records.name;
+        this.removeForm.data = records.data;
+      },
+      removeData(title, name, data) {
+        console.log(title, name, data);
+        var url = new URL(`https://localhost:7236/f5/data-group/remove/${title}`);
+        if (data == "") {
+          data = "empty";
+        }
+        const params = new URLSearchParams(
+          { Name: name, Data: data }
+        );
+
+        const config = {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }
+
+        axios.post(url, params, config)
+          .then(response => console.log(response))
+      }
     },
+
     created() {
       this.getData();
     }
